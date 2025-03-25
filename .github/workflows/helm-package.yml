@@ -3,7 +3,7 @@ name: Build and Publish Helm Chart
 on:
   push:
     branches:
-      - master  # Adjust to your default branch
+      - master  
 
 jobs:
   build:
@@ -23,8 +23,27 @@ jobs:
           helm dependency update
           helm package . --destination ./
 
-      - name: Upload Helm Package as an Artifact
-        uses: actions/upload-artifact@v4
+      - name: Get Helm Chart Version
+        id: get_version
+        run: |
+          VERSION=$(helm show chart . | grep 'version:' | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          name: helm-chart
-          path: "*.tgz"
+          tag_name: v${{ env.version }}
+          release_name: "Helm Chart v${{ env.version }}"
+          body: "New Helm Chart release v${{ env.version }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Helm Chart to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.tgz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

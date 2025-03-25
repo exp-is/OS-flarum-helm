@@ -29,28 +29,14 @@ jobs:
           VERSION=$(helm show chart . | grep 'version:' | awk '{print $2}')
           echo "version=$VERSION" >> $GITHUB_ENV
 
-      - name: Create Git Tag
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git tag v${{ env.version }}
-          git push origin v${{ env.version }} 
-
-      - name: Create GitHub Release
-        id: create_release
+      - name: Upload Helm Chart to Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.version }}
           release_name: "Helm Chart v${{ env.version }}"
           body: "New Helm Chart release v${{ env.version }}"
           draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Helm Chart to Release
-        uses: softprops/action-gh-release@v2
-        with:
+          prerelease: false        
           files: "*.tgz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,30 @@
+name: Build and Publish Helm Chart
+
+on:
+  push:
+    branches:
+      - master  # Adjust to your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      - name: Package Helm Chart
+        run: |
+          helm dependency update
+          helm package . --destination ./
+
+      - name: Upload Helm Package as an Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: "*.tgz"
